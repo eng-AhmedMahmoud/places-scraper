@@ -16,10 +16,11 @@ interface Props {
 }
 
 type SseEvent =
-  | { type: "progress"; done: number; total: number; center: string; governorate: string }
+  | { type: "progress"; done: number; total: number; center: string; governorate: string; calls: number }
   | { type: "row"; row: PlaceRow }
   | { type: "warning"; message: string }
-  | { type: "done"; total: number };
+  | { type: "capped"; calls: number; cap: number }
+  | { type: "done"; total: number; calls: number };
 
 export function ScrapeWorkspace({ locale, governorates }: Props) {
   const t = useTranslations();
@@ -28,9 +29,10 @@ export function ScrapeWorkspace({ locale, governorates }: Props) {
   const [searchLang, setSearchLang] = useState<"ar" | "en">(locale);
   const [rows, setRows] = useState<PlaceRow[]>([]);
   const [warnings, setWarnings] = useState<string[]>([]);
-  const [progress, setProgress] = useState<{ done: number; total: number; center: string; gov: string } | null>(
+  const [progress, setProgress] = useState<{ done: number; total: number; center: string; gov: string; calls: number } | null>(
     null,
   );
+  const [capped, setCapped] = useState<{ calls: number; cap: number } | null>(null);
   const [running, setRunning] = useState(false);
   const [filter, setFilter] = useState("");
   const abortRef = useRef<AbortController | null>(null);
@@ -50,6 +52,7 @@ export function ScrapeWorkspace({ locale, governorates }: Props) {
     setRows([]);
     setWarnings([]);
     setProgress(null);
+    setCapped(null);
     setRunning(true);
 
     const ctrl = new AbortController();
@@ -79,9 +82,10 @@ export function ScrapeWorkspace({ locale, governorates }: Props) {
             const evt = JSON.parse(line.slice(6)) as SseEvent;
             if (evt.type === "row") setRows((r) => [...r, evt.row]);
             else if (evt.type === "progress")
-              setProgress({ done: evt.done, total: evt.total, center: evt.center, gov: evt.governorate });
+              setProgress({ done: evt.done, total: evt.total, center: evt.center, gov: evt.governorate, calls: evt.calls });
             else if (evt.type === "warning") setWarnings((w) => [...w, evt.message]);
-            else if (evt.type === "done") setProgress((p) => (p ? { ...p, done: p.total } : p));
+            else if (evt.type === "capped") setCapped({ calls: evt.calls, cap: evt.cap });
+            else if (evt.type === "done") setProgress((p) => (p ? { ...p, done: p.total, calls: evt.calls } : p));
           } catch {}
         }
       }
@@ -263,9 +267,19 @@ export function ScrapeWorkspace({ locale, governorates }: Props) {
                   style={{ width: `${(progress.done / Math.max(progress.total, 1)) * 100}%` }}
                 />
               </div>
-              <div className="mt-2 text-xs text-ink-400">
-                {rows.length} {t("progress.found")}
+              <div className="mt-2 flex justify-between text-xs text-ink-400">
+                <span>
+                  {rows.length} {t("progress.found")}
+                </span>
+                <span>
+                  {progress.calls} {t("progress.calls")}
+                </span>
               </div>
+              {capped && (
+                <p className="mt-3 text-xs text-amber-300">
+                  {t("progress.capped")} — {capped.calls}/{capped.cap}
+                </p>
+              )}
             </div>
           ) : (
             <p className="text-sm text-ink-400">{t("progress.waiting")}</p>

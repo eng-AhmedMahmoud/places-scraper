@@ -84,28 +84,46 @@ export interface ScrapeTarget {
   query: string;
 }
 
+export type ScrapeEvent =
+  | { type: "progress"; done: number; total: number; center: string; governorate: string; calls: number }
+  | { type: "row"; row: PlaceRow }
+  | { type: "warning"; message: string }
+  | { type: "capped"; calls: number; cap: number }
+  | { type: "done"; total: number; calls: number };
+
 export async function* scrapeStream(
   targets: ScrapeTarget[],
   apiKey: string,
   language: "ar" | "en",
   signal: AbortSignal,
-): AsyncGenerator<
-  | { type: "progress"; done: number; total: number; center: string; governorate: string }
-  | { type: "row"; row: PlaceRow }
-  | { type: "warning"; message: string }
-  | { type: "done"; total: number }
-> {
+  callCap = Number(process.env.MAX_API_CALLS ?? 8000),
+): AsyncGenerator<ScrapeEvent> {
   const seen = new Set<string>();
   let scanned = 0;
+  let calls = 0;
+  let capped = false;
 
-  for (const t of targets) {
+  outer: for (const t of targets) {
     if (signal.aborted) return;
-    yield { type: "progress", done: scanned, total: targets.length, center: t.center, governorate: t.governorate };
+    yield {
+      type: "progress",
+      done: scanned,
+      total: targets.length,
+      center: t.center,
+      governorate: t.governorate,
+      calls,
+    };
 
     let token: string | undefined;
     let pages = 0;
     while (pages < 3) {
       if (signal.aborted) return;
+      if (calls >= callCap) {
+        yield { type: "capped", calls, cap: callCap };
+        capped = true;
+        break outer;
+      }
+      calls += 1;
       const res = await textSearch(t.query, apiKey, token, language, signal);
       if (res.status && res.status !== "OK" && res.status !== "ZERO_RESULTS") {
         yield { type: "warning", message: `${t.center}: ${res.status} ${res.error_message ?? ""}` };
@@ -114,7 +132,13 @@ export async function* scrapeStream(
       for (const p of res.results ?? []) {
         if (signal.aborted) return;
         if (!p.place_id || seen.has(p.place_id)) continue;
+        if (calls >= callCap) {
+          yield { type: "capped", calls, cap: callCap };
+          capped = true;
+          break outer;
+        }
         seen.add(p.place_id);
+        calls += 1;
         const d = await placeDetails(p.place_id, apiKey, language, signal);
         const r = d.result ?? {};
         yield {
@@ -143,5 +167,5 @@ export async function* scrapeStream(
     }
     scanned += 1;
   }
-  yield { type: "done", total: seen.size };
+  if (!capped) yield { type: "done", total: seen.size, calls };
 }

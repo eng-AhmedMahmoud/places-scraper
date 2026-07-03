@@ -33,7 +33,9 @@
     "centers": "centers",
     "waiting": "Waiting to start",
     "done": "Finished",
-    "warnings": "Warnings"
+    "warnings": "Warnings",
+    "calls": "API calls",
+    "capped": "Stopped: hit API call cap"
   },
   "table": {
     "title": "Results",
