@@ -1,0 +1,56 @@
+{
+  "brand": {
+    "name": "PlaceHarvest",
+    "tagline": "Egypt business directory scraper"
+  },
+  "nav": {
+    "language": "العربية"
+  },
+  "hero": {
+    "title": "Scrape any industry across Egypt",
+    "subtitle": "Enter an industry, pick governorates, download a clean Excel of every business Google knows.",
+    "cta": "Start scraping"
+  },
+  "form": {
+    "industry": "Industry / keyword",
+    "industryPh": "e.g. speech therapy centers, dental clinics, gyms",
+    "governorates": "Governorates",
+    "selectAll": "Select all",
+    "clearAll": "Clear",
+    "language": "Search language",
+    "langAr": "Arabic (recommended)",
+    "langEn": "English",
+    "start": "Start scrape",
+    "cancel": "Cancel",
+    "estimate": "Estimated API calls",
+    "warn": "Large scrape — this may take several minutes and consume Google Places quota."
+  },
+  "progress": {
+    "title": "Progress",
+    "scanning": "Scanning",
+    "found": "results found",
+    "of": "of",
+    "centers": "centers",
+    "waiting": "Waiting to start",
+    "done": "Finished",
+    "warnings": "Warnings"
+  },
+  "table": {
+    "title": "Results",
+    "filter": "Filter results",
+    "name": "Name",
+    "address": "Address",
+    "phone": "Phone",
+    "website": "Website",
+    "hours": "Working hours",
+    "rating": "Rating",
+    "reviews": "Reviews",
+    "governorate": "Governorate",
+    "center": "Center",
+    "empty": "No results yet. Run a scrape.",
+    "download": "Download Excel"
+  },
+  "footer": {
+    "note": "Data from Google Places. Uses your configured API key server-side."
+  }
+}
