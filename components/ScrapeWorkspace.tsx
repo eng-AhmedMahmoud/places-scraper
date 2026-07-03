@@ -41,7 +41,7 @@ export function ScrapeWorkspace({ locale, governorates }: Props) {
     () => governorates.filter((g) => selectedGovs.includes(g.key)).reduce((n, g) => n + g.centerCount, 0),
     [governorates, selectedGovs],
   );
-  const estCalls = useMemo(() => totalCenters * 60, [totalCenters]);
+  const estCalls = useMemo(() => totalCenters * 3, [totalCenters]);
 
   const toggleGov = (key: string) => {
     setSelectedGovs((prev) => (prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]));
@@ -243,7 +243,7 @@ export function ScrapeWorkspace({ locale, governorates }: Props) {
           </div>
         </div>
 
-        {estCalls > 3000 && (
+        {estCalls > 500 && (
           <p className="mt-4 text-xs text-amber-300/80">{t("form.warn")}</p>
         )}
       </div>

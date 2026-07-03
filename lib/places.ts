@@ -1,5 +1,18 @@
-const TEXT_URL = "https://maps.googleapis.com/maps/api/place/textsearch/json";
-const DETAILS_URL = "https://maps.googleapis.com/maps/api/place/details/json";
+const SEARCH_URL = "https://places.googleapis.com/v1/places:searchText";
+
+const FIELD_MASK = [
+  "places.id",
+  "places.displayName",
+  "places.formattedAddress",
+  "places.location",
+  "places.rating",
+  "places.userRatingCount",
+  "places.nationalPhoneNumber",
+  "places.internationalPhoneNumber",
+  "places.websiteUri",
+  "places.regularOpeningHours",
+  "nextPageToken",
+].join(",");
 
 export interface PlaceRow {
   name: string;
@@ -16,65 +29,47 @@ export interface PlaceRow {
   placeId: string;
 }
 
-interface TextSearchResult {
-  place_id: string;
-  name?: string;
-  formatted_address?: string;
-  geometry?: { location?: { lat: number; lng: number } };
+interface NewPlace {
+  id: string;
+  displayName?: { text?: string };
+  formattedAddress?: string;
+  location?: { latitude?: number; longitude?: number };
   rating?: number;
-  user_ratings_total?: number;
+  userRatingCount?: number;
+  nationalPhoneNumber?: string;
+  internationalPhoneNumber?: string;
+  websiteUri?: string;
+  regularOpeningHours?: { weekdayDescriptions?: string[] };
 }
 
-interface TextSearchResponse {
-  results?: TextSearchResult[];
-  next_page_token?: string;
-  status?: string;
-  error_message?: string;
-}
-
-interface DetailsResponse {
-  result?: {
-    name?: string;
-    formatted_address?: string;
-    formatted_phone_number?: string;
-    website?: string;
-    opening_hours?: { weekday_text?: string[] };
-    geometry?: { location?: { lat: number; lng: number } };
-    rating?: number;
-    user_ratings_total?: number;
-  };
-  status?: string;
+interface SearchResponse {
+  places?: NewPlace[];
+  nextPageToken?: string;
+  error?: { code?: number; message?: string; status?: string };
 }
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-export async function textSearch(
+export async function searchText(
   query: string,
   apiKey: string,
+  language: "ar" | "en",
   pageToken?: string,
-  language = "ar",
   signal?: AbortSignal,
-): Promise<TextSearchResponse> {
-  const params = new URLSearchParams({ query, key: apiKey, language });
-  if (pageToken) params.set("pagetoken", pageToken);
-  const res = await fetch(`${TEXT_URL}?${params}`, { signal, cache: "no-store" });
-  return res.json();
-}
-
-export async function placeDetails(
-  placeId: string,
-  apiKey: string,
-  language = "ar",
-  signal?: AbortSignal,
-): Promise<DetailsResponse> {
-  const params = new URLSearchParams({
-    place_id: placeId,
-    fields:
-      "name,formatted_address,formatted_phone_number,website,opening_hours,geometry,rating,user_ratings_total",
-    key: apiKey,
-    language,
+): Promise<SearchResponse> {
+  const body: Record<string, unknown> = { textQuery: query, languageCode: language, pageSize: 20 };
+  if (pageToken) body.pageToken = pageToken;
+  const res = await fetch(SEARCH_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Goog-Api-Key": apiKey,
+      "X-Goog-FieldMask": FIELD_MASK,
+    },
+    body: JSON.stringify(body),
+    signal,
+    cache: "no-store",
   });
-  const res = await fetch(`${DETAILS_URL}?${params}`, { signal, cache: "no-store" });
   return res.json();
 }
 
@@ -90,6 +85,23 @@ export type ScrapeEvent =
   | { type: "warning"; message: string }
   | { type: "capped"; calls: number; cap: number }
   | { type: "done"; total: number; calls: number };
+
+function toRow(p: NewPlace, governorate: string, center: string): PlaceRow {
+  return {
+    name: p.displayName?.text ?? "",
+    address: p.formattedAddress ?? "",
+    phone: p.nationalPhoneNumber ?? p.internationalPhoneNumber ?? "",
+    website: p.websiteUri ?? "",
+    hours: p.regularOpeningHours?.weekdayDescriptions?.join(" | ") ?? "",
+    lat: p.location?.latitude ?? null,
+    lng: p.location?.longitude ?? null,
+    rating: p.rating ?? null,
+    totalRatings: p.userRatingCount ?? null,
+    governorate,
+    center,
+    placeId: p.id,
+  };
+}
 
 export async function* scrapeStream(
   targets: ScrapeTarget[],
@@ -124,43 +136,21 @@ export async function* scrapeStream(
         break outer;
       }
       calls += 1;
-      const res = await textSearch(t.query, apiKey, token, language, signal);
-      if (res.status && res.status !== "OK" && res.status !== "ZERO_RESULTS") {
-        yield { type: "warning", message: `${t.center}: ${res.status} ${res.error_message ?? ""}` };
+      const res = await searchText(t.query, apiKey, language, token, signal);
+      if (res.error) {
+        yield {
+          type: "warning",
+          message: `${t.center}: ${res.error.status ?? res.error.code ?? ""} ${res.error.message ?? ""}`,
+        };
         break;
       }
-      for (const p of res.results ?? []) {
+      for (const p of res.places ?? []) {
         if (signal.aborted) return;
-        if (!p.place_id || seen.has(p.place_id)) continue;
-        if (calls >= callCap) {
-          yield { type: "capped", calls, cap: callCap };
-          capped = true;
-          break outer;
-        }
-        seen.add(p.place_id);
-        calls += 1;
-        const d = await placeDetails(p.place_id, apiKey, language, signal);
-        const r = d.result ?? {};
-        yield {
-          type: "row",
-          row: {
-            name: r.name ?? p.name ?? "",
-            address: r.formatted_address ?? p.formatted_address ?? "",
-            phone: r.formatted_phone_number ?? "",
-            website: r.website ?? "",
-            hours: r.opening_hours?.weekday_text?.join(" | ") ?? "",
-            lat: r.geometry?.location?.lat ?? p.geometry?.location?.lat ?? null,
-            lng: r.geometry?.location?.lng ?? p.geometry?.location?.lng ?? null,
-            rating: r.rating ?? p.rating ?? null,
-            totalRatings: r.user_ratings_total ?? p.user_ratings_total ?? null,
-            governorate: t.governorate,
-            center: t.center,
-            placeId: p.place_id,
-          },
-        };
-        await sleep(120);
+        if (!p.id || seen.has(p.id)) continue;
+        seen.add(p.id);
+        yield { type: "row", row: toRow(p, t.governorate, t.center) };
       }
-      token = res.next_page_token;
+      token = res.nextPageToken;
       pages += 1;
       if (!token) break;
       await sleep(2100);
