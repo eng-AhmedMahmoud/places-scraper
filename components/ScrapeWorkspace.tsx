@@ -180,18 +180,22 @@ export function ScrapeWorkspace({ locale, countries }: Props) {
 
   return (
     <div className="space-y-6">
-      <div className="surface p-6">
-        <label className="block text-sm mb-2 text-ink-200">{t("form.industry")}</label>
+      <div className="surface p-7">
+        <label className="block text-xs uppercase tracking-wider mb-3 text-text-muted">
+          {t("form.industry")}
+        </label>
         <input
           value={industry}
           onChange={(e) => setIndustry(e.target.value)}
           placeholder={t("form.industryPh")}
-          className="w-full bg-ink-900/60 border border-ink-700 rounded-lg px-4 py-3 text-lg focus:outline-none focus:border-accent-500"
+          className="field text-lg"
           disabled={running}
         />
 
-        <div className="mt-6">
-          <label className="block text-sm mb-2 text-ink-200">{t("form.country")}</label>
+        <div className="mt-8">
+          <label className="block text-xs uppercase tracking-wider mb-3 text-text-muted">
+            {t("form.country")}
+          </label>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
             {countries.map((c) => {
               const on = c.key === countryKey;
@@ -200,15 +204,12 @@ export function ScrapeWorkspace({ locale, countries }: Props) {
                   key={c.key}
                   onClick={() => switchCountry(c.key)}
                   disabled={running}
-                  className={`text-start px-3 py-2 rounded-lg border text-sm transition ${
-                    on
-                      ? "bg-accent-500/15 border-accent-500/60 text-white"
-                      : "border-ink-700 text-ink-300 hover:border-ink-500"
-                  }`}
+                  className={`pick ${on ? "pick--on" : ""}`}
                 >
                   <div className="font-medium truncate">{c.label}</div>
-                  <div className="text-[10px] opacity-70">
-                    {c.divisions.length} {t("progress.divisions")} · {c.totalCenters} {t("progress.centers")}
+                  <div className="text-[10px] opacity-70 mt-1">
+                    {c.divisions.length} {t("progress.divisions")} · {c.totalCenters}{" "}
+                    {t("progress.centers")}
                   </div>
                 </button>
               );
@@ -216,9 +217,11 @@ export function ScrapeWorkspace({ locale, countries }: Props) {
           </div>
         </div>
 
-        <div className="mt-6">
-          <div className="flex items-center justify-between mb-2">
-            <label className="text-sm text-ink-200">{t("form.divisions")}</label>
+        <div className="mt-8">
+          <div className="flex items-center justify-between mb-3">
+            <label className="text-xs uppercase tracking-wider text-text-muted">
+              {t("form.divisions")}
+            </label>
             <div className="flex gap-2 text-xs">
               <button
                 onClick={() => setSelectedDivs(activeCountry?.divisions.map((d) => d.key) ?? [])}
@@ -244,14 +247,10 @@ export function ScrapeWorkspace({ locale, countries }: Props) {
                   key={d.key}
                   onClick={() => toggleDiv(d.key)}
                   disabled={running}
-                  className={`text-start px-3 py-2 rounded-lg border text-sm transition ${
-                    on
-                      ? "bg-accent-500/15 border-accent-500/60 text-white"
-                      : "border-ink-700 text-ink-300 hover:border-ink-500"
-                  }`}
+                  className={`pick ${on ? "pick--on" : ""}`}
                 >
                   <div className="font-medium truncate">{d.label}</div>
-                  <div className="text-[10px] opacity-70">
+                  <div className="text-[10px] opacity-70 mt-1">
                     {d.centerCount} {t("progress.centers")}
                   </div>
                 </button>
@@ -260,28 +259,22 @@ export function ScrapeWorkspace({ locale, countries }: Props) {
           </div>
         </div>
 
-        <div className="mt-6 flex flex-col md:flex-row md:items-end gap-4 justify-between">
+        <div className="mt-8 flex flex-col md:flex-row md:items-end gap-6 justify-between">
           <div>
-            <label className="block text-sm mb-2 text-ink-200">{t("form.language")}</label>
+            <label className="block text-xs uppercase tracking-wider mb-3 text-text-muted">
+              {t("form.language")}
+            </label>
             <div className="flex gap-2">
               <button
                 onClick={() => setSearchLang("ar")}
-                className={`px-3 py-2 rounded-lg text-sm border ${
-                  searchLang === "ar"
-                    ? "bg-accent-500/15 border-accent-500/60 text-white"
-                    : "border-ink-700 text-ink-300"
-                }`}
+                className={`pick ${searchLang === "ar" ? "pick--on" : ""}`}
                 disabled={running}
               >
                 {t("form.langAr")}
               </button>
               <button
                 onClick={() => setSearchLang("en")}
-                className={`px-3 py-2 rounded-lg text-sm border ${
-                  searchLang === "en"
-                    ? "bg-accent-500/15 border-accent-500/60 text-white"
-                    : "border-ink-700 text-ink-300"
-                }`}
+                className={`pick ${searchLang === "en" ? "pick--on" : ""}`}
                 disabled={running}
               >
                 {t("form.langEn")}
@@ -289,7 +282,7 @@ export function ScrapeWorkspace({ locale, countries }: Props) {
             </div>
           </div>
 
-          <div className="text-xs text-ink-400 md:text-end">
+          <div className="text-xs text-text-muted md:text-end">
             <div>
               {totalCenters} {t("progress.centers")}
             </div>
@@ -303,44 +296,47 @@ export function ScrapeWorkspace({ locale, countries }: Props) {
               <button
                 onClick={startScrape}
                 disabled={!industry.trim() || selectedDivs.length === 0}
-                className="px-6 py-3 rounded-lg bg-accent-500 hover:bg-accent-400 text-ink-900 font-semibold disabled:opacity-40"
+                className="btn btn--primary btn--lg"
               >
                 {t("form.start")}
+                <span className="btn__arrow" aria-hidden="true">→</span>
               </button>
             ) : (
-              <button
-                onClick={cancel}
-                className="px-6 py-3 rounded-lg bg-red-500/80 hover:bg-red-500 text-white font-semibold"
-              >
+              <button onClick={cancel} className="btn btn--danger btn--lg">
                 {t("form.cancel")}
               </button>
             )}
           </div>
         </div>
 
-        {estCalls > 500 && <p className="mt-4 text-xs text-amber-300/80">{t("form.warn")}</p>}
+        {estCalls > 500 && (
+          <p className="mt-5 text-xs text-amber-300/80">{t("form.warn")}</p>
+        )}
       </div>
 
       {(running || progress || warnings.length > 0) && (
-        <div className="surface p-6">
-          <h3 className="font-semibold mb-3">{t("progress.title")}</h3>
+        <div className="surface p-7">
+          <h3 className="font-display font-semibold text-lg mb-4">{t("progress.title")}</h3>
           {progress ? (
             <div>
-              <div className="flex justify-between text-sm text-ink-300 mb-2">
+              <div className="flex justify-between text-sm text-text-soft mb-3">
                 <span>
-                  {t("progress.scanning")}: <b className="text-white">{progress.center}</b> — {progress.gov}, {progress.country}
+                  {t("progress.scanning")}: <b className="text-text">{progress.center}</b> —{" "}
+                  {progress.gov}, {progress.country}
                 </span>
                 <span>
                   {progress.done} {t("progress.of")} {progress.total} {t("progress.centers")}
                 </span>
               </div>
-              <div className="h-2 bg-ink-800 rounded overflow-hidden">
+              <div className="progress-track">
                 <div
-                  className="h-full bg-accent-500 transition-all"
-                  style={{ width: `${(progress.done / Math.max(progress.total, 1)) * 100}%` }}
+                  className="progress-fill"
+                  style={{
+                    width: `${(progress.done / Math.max(progress.total, 1)) * 100}%`,
+                  }}
                 />
               </div>
-              <div className="mt-2 flex justify-between text-xs text-ink-400">
+              <div className="mt-3 flex justify-between text-xs text-text-muted">
                 <span>
                   {rows.length} {t("progress.found")}
                 </span>
@@ -355,11 +351,11 @@ export function ScrapeWorkspace({ locale, countries }: Props) {
               )}
             </div>
           ) : (
-            <p className="text-sm text-ink-400">{t("progress.waiting")}</p>
+            <p className="text-sm text-text-muted">{t("progress.waiting")}</p>
           )}
 
           {warnings.length > 0 && (
-            <details className="mt-4 text-xs text-amber-200/80">
+            <details className="mt-5 text-xs text-amber-200/80">
               <summary className="cursor-pointer">
                 {t("progress.warnings")} ({warnings.length})
               </summary>
@@ -373,11 +369,11 @@ export function ScrapeWorkspace({ locale, countries }: Props) {
         </div>
       )}
 
-      <div className="surface p-6">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4">
+      <div className="surface p-7">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-5">
           <div>
-            <h3 className="font-semibold text-lg">
-              {t("table.title")} ({rows.length})
+            <h3 className="font-display font-semibold text-lg text-text">
+              {t("table.title")} <span className="text-text-muted">({rows.length})</span>
             </h3>
           </div>
           <div className="flex gap-2 w-full md:w-auto">
@@ -385,77 +381,79 @@ export function ScrapeWorkspace({ locale, countries }: Props) {
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
               placeholder={t("table.filter")}
-              className="flex-1 md:w-64 bg-ink-900/60 border border-ink-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-accent-500"
+              className="field flex-1 md:w-64 text-sm py-2"
             />
             <button
               onClick={downloadExcel}
               disabled={rows.length === 0}
-              className="px-4 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-ink-900 font-semibold text-sm disabled:opacity-40"
+              className="btn btn--primary btn--sm"
             >
               {t("table.download")}
+              <span className="btn__arrow" aria-hidden="true">↓</span>
             </button>
           </div>
         </div>
 
         {filteredRows.length === 0 ? (
-          <p className="text-sm text-ink-400 py-8 text-center">{t("table.empty")}</p>
+          <p className="text-sm text-text-muted py-10 text-center">{t("table.empty")}</p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="data-table">
               <thead>
-                <tr className="text-start text-ink-400 border-b border-ink-700">
-                  <th className="py-2 pe-3 text-start">{t("table.name")}</th>
-                  <th className="py-2 pe-3 text-start">{t("table.address")}</th>
-                  <th className="py-2 pe-3 text-start">{t("table.phone")}</th>
-                  <th className="py-2 pe-3 text-start">{t("table.website")}</th>
-                  <th className="py-2 pe-3 text-start">{t("table.rating")}</th>
-                  <th className="py-2 pe-3 text-start">{t("table.country")}</th>
-                  <th className="py-2 pe-3 text-start">{t("table.governorate")}</th>
-                  <th className="py-2 pe-3 text-start">{t("table.center")}</th>
+                <tr>
+                  <th>{t("table.name")}</th>
+                  <th>{t("table.address")}</th>
+                  <th>{t("table.phone")}</th>
+                  <th>{t("table.website")}</th>
+                  <th>{t("table.rating")}</th>
+                  <th>{t("table.country")}</th>
+                  <th>{t("table.governorate")}</th>
+                  <th>{t("table.center")}</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredRows.map((r) => (
-                  <tr key={r.placeId} className="border-b border-ink-800/60 hover:bg-ink-800/40">
-                    <td className="py-2 pe-3 font-medium text-white">{r.name}</td>
-                    <td className="py-2 pe-3 text-ink-300 max-w-xs truncate" title={r.address}>
+                  <tr key={r.placeId}>
+                    <td className="font-medium text-text">{r.name}</td>
+                    <td className="max-w-xs truncate" title={r.address}>
                       {r.address}
                     </td>
-                    <td className="py-2 pe-3 whitespace-nowrap">
+                    <td className="whitespace-nowrap">
                       {r.phone ? (
-                        <a href={`tel:${r.phone}`} className="text-accent-400 hover:underline">
+                        <a href={`tel:${r.phone}`} className="text-accent hover:underline">
                           {r.phone}
                         </a>
                       ) : (
-                        <span className="text-ink-500">—</span>
+                        <span className="text-text-muted">—</span>
                       )}
                     </td>
-                    <td className="py-2 pe-3">
+                    <td>
                       {r.website ? (
                         <a
                           href={r.website}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-accent-400 hover:underline"
+                          className="text-accent hover:underline"
                         >
                           ↗
                         </a>
                       ) : (
-                        <span className="text-ink-500">—</span>
+                        <span className="text-text-muted">—</span>
                       )}
                     </td>
-                    <td className="py-2 pe-3">
+                    <td>
                       {r.rating != null ? (
                         <span>
-                          {r.rating.toFixed(1)} <span className="text-ink-500">({r.totalRatings ?? 0})</span>
+                          {r.rating.toFixed(1)}{" "}
+                          <span className="text-text-muted">({r.totalRatings ?? 0})</span>
                         </span>
                       ) : (
-                        <span className="text-ink-500">—</span>
+                        <span className="text-text-muted">—</span>
                       )}
                     </td>
-                    <td className="py-2 pe-3 text-ink-300">{r.country}</td>
-                    <td className="py-2 pe-3 text-ink-300">{r.governorate}</td>
-                    <td className="py-2 pe-3 text-ink-300">{r.center}</td>
+                    <td>{r.country}</td>
+                    <td>{r.governorate}</td>
+                    <td>{r.center}</td>
                   </tr>
                 ))}
               </tbody>

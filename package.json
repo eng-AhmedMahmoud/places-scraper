@@ -1,9 +1,9 @@
 {
-  "name": "places-scraper",
+  "name": "placeharvest",
   "version": "0.2.0",
   "private": true,
   "scripts": {
-    "dev": "portless places-scraper -- next dev",
+    "dev": "portless placeharvest -- next dev",
     "dev:raw": "next dev",
     "build": "next build",
     "start": "next start",

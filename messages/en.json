@@ -25,7 +25,8 @@
     "feature3Body": "One sheet per region + a combined tab. Ready for your CRM, dialer, or WhatsApp cadence.",
     "authCta": "Sign in to your workspace",
     "countries": "countries",
-    "totalCenters": "cities & centers indexed"
+    "totalCenters": "cities & centers indexed",
+    "timeToXlsx": "median time to Excel"
   },
   "hero": {
     "title": "Scrape any industry across MENA",

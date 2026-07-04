@@ -11,11 +11,7 @@ export function LangSwitcher({ currentLocale }: { currentLocale: string }) {
   const nextPath = pathname.replace(/^\/(en|ar)/, `/${nextLocale}`);
 
   return (
-    <Link
-      href={nextPath}
-      className="surface px-4 py-2 text-sm hover:bg-ink-800/70 transition"
-      prefetch={false}
-    >
+    <Link href={nextPath} className="btn btn--ghost btn--sm" prefetch={false}>
       {t("language")}
     </Link>
   );

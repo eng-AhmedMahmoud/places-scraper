@@ -31,17 +31,25 @@ export default async function AppPage({ params }: { params: Promise<{ locale: st
   return (
     <>
       <SiteHeader locale={locale} />
-      <main className="mx-auto max-w-6xl px-5 pb-16">
-        <section className="surface-strong p-7 md:p-10 mb-8">
-          <h2 className="text-2xl md:text-3xl font-semibold leading-tight max-w-2xl">
+      <main className="max-w-[1240px] mx-auto px-8 pb-24">
+        <section className="pt-12 pb-8">
+          <span className="eyebrow">
+            <span className="eyebrow__dot" />
+            {t("brand.tagline")}
+          </span>
+          <h1 className="mt-6 font-display font-semibold text-3xl md:text-5xl tracking-tight leading-tight max-w-3xl">
             {t("hero.title")}
-          </h2>
-          <p className="mt-3 text-ink-300 max-w-2xl">{t("hero.subtitle")}</p>
+          </h1>
+          <p className="mt-4 text-text-soft max-w-2xl text-base md:text-lg">
+            {t("hero.subtitle")}
+          </p>
         </section>
 
         <ScrapeWorkspace locale={locale as "en" | "ar"} countries={countries} />
 
-        <footer className="mt-14 text-center text-xs text-ink-400">{t("footer.note")}</footer>
+        <footer className="mt-16 pt-8 border-t border-line text-center text-xs text-text-muted">
+          {t("footer.note")}
+        </footer>
       </main>
     </>
   );
