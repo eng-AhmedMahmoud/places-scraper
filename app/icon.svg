@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+  <defs>
+    <linearGradient id="phBg" x1="0" y1="0" x2="128" y2="128" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0F1115"/>
+      <stop offset="1" stop-color="#020202"/>
+    </linearGradient>
+    <linearGradient id="phPin" x1="30" y1="14" x2="98" y2="94" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#6EE7B7"/>
+      <stop offset="1" stop-color="#10B981"/>
+    </linearGradient>
+    <linearGradient id="phWheat" x1="30" y1="70" x2="98" y2="118" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FDE68A"/>
+      <stop offset="1" stop-color="#F59E0B"/>
+    </linearGradient>
+    <radialGradient id="phGlow" cx="64" cy="46" r="34" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#10B981" stop-opacity="0.4"/>
+      <stop offset="1" stop-color="#10B981" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="128" height="128" rx="28" fill="url(#phBg)"/>
+  <rect x="1" y="1" width="126" height="126" rx="27" fill="none" stroke="#262A30" stroke-width="1"/>
+  <circle cx="64" cy="46" r="34" fill="url(#phGlow)"/>
+  <path d="M64 16 C48 16 36 28 36 44 C36 62 64 88 64 88 C64 88 92 62 92 44 C92 28 80 16 64 16 Z"
+        fill="url(#phPin)"/>
+  <circle cx="64" cy="44" r="10" fill="#08090B"/>
+  <circle cx="60" cy="41" r="3" fill="#F4F6F9" opacity="0.55"/>
+  <g stroke="url(#phWheat)" stroke-width="2.4" stroke-linecap="round" fill="none">
+    <path d="M40 100 C46 96 50 92 52 84"/>
+    <path d="M88 100 C82 96 78 92 76 84"/>
+    <path d="M64 104 L64 88"/>
+  </g>
+  <g fill="url(#phWheat)">
+    <ellipse cx="48" cy="90" rx="2.2" ry="3.6" transform="rotate(-30 48 90)"/>
+    <ellipse cx="52" cy="86" rx="2.2" ry="3.6" transform="rotate(-30 52 86)"/>
+    <ellipse cx="80" cy="90" rx="2.2" ry="3.6" transform="rotate(30 80 90)"/>
+    <ellipse cx="76" cy="86" rx="2.2" ry="3.6" transform="rotate(30 76 86)"/>
+    <ellipse cx="62" cy="94" rx="2.2" ry="3.6"/>
+    <ellipse cx="66" cy="94" rx="2.2" ry="3.6"/>
+    <ellipse cx="62" cy="90" rx="2.2" ry="3.6"/>
+    <ellipse cx="66" cy="90" rx="2.2" ry="3.6"/>
+  </g>
+  <text x="64" y="118" font-family="'Space Grotesk','Inter',sans-serif" font-weight="700" font-size="10" fill="#8E97A5" text-anchor="middle" letter-spacing="0.16em">PLACEHARVEST</text>
+</svg>
