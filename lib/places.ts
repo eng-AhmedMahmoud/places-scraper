@@ -24,6 +24,7 @@ export interface PlaceRow {
   lng: number | null;
   rating: number | null;
   totalRatings: number | null;
+  country: string;
   governorate: string;
   center: string;
   placeId: string;
@@ -74,19 +75,20 @@ export async function searchText(
 }
 
 export interface ScrapeTarget {
+  country: string;
   governorate: string;
   center: string;
   query: string;
 }
 
 export type ScrapeEvent =
-  | { type: "progress"; done: number; total: number; center: string; governorate: string; calls: number }
+  | { type: "progress"; done: number; total: number; center: string; governorate: string; country: string; calls: number }
   | { type: "row"; row: PlaceRow }
   | { type: "warning"; message: string }
   | { type: "capped"; calls: number; cap: number }
   | { type: "done"; total: number; calls: number };
 
-function toRow(p: NewPlace, governorate: string, center: string): PlaceRow {
+function toRow(p: NewPlace, country: string, governorate: string, center: string): PlaceRow {
   return {
     name: p.displayName?.text ?? "",
     address: p.formattedAddress ?? "",
@@ -97,6 +99,7 @@ function toRow(p: NewPlace, governorate: string, center: string): PlaceRow {
     lng: p.location?.longitude ?? null,
     rating: p.rating ?? null,
     totalRatings: p.userRatingCount ?? null,
+    country,
     governorate,
     center,
     placeId: p.id,
@@ -123,6 +126,7 @@ export async function* scrapeStream(
       total: targets.length,
       center: t.center,
       governorate: t.governorate,
+      country: t.country,
       calls,
     };
 
@@ -148,7 +152,7 @@ export async function* scrapeStream(
         if (signal.aborted) return;
         if (!p.id || seen.has(p.id)) continue;
         seen.add(p.id);
-        yield { type: "row", row: toRow(p, t.governorate, t.center) };
+        yield { type: "row", row: toRow(p, t.country, t.governorate, t.center) };
       }
       token = res.nextPageToken;
       pages += 1;

@@ -4,51 +4,81 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import type { PlaceRow } from "@/lib/places";
 
-interface GovOpt {
+interface DivisionOpt {
   key: string;
   label: string;
   centerCount: number;
 }
 
+export interface CountryOpt {
+  key: string;
+  label: string;
+  labelAr: string;
+  labelEn: string;
+  divisions: DivisionOpt[];
+  totalCenters: number;
+}
+
 interface Props {
   locale: "en" | "ar";
-  governorates: GovOpt[];
+  countries: CountryOpt[];
 }
 
 type SseEvent =
-  | { type: "progress"; done: number; total: number; center: string; governorate: string; calls: number }
+  | { type: "progress"; done: number; total: number; center: string; governorate: string; country: string; calls: number }
   | { type: "row"; row: PlaceRow }
   | { type: "warning"; message: string }
   | { type: "capped"; calls: number; cap: number }
   | { type: "done"; total: number; calls: number };
 
-export function ScrapeWorkspace({ locale, governorates }: Props) {
+export function ScrapeWorkspace({ locale, countries }: Props) {
   const t = useTranslations();
   const [industry, setIndustry] = useState("");
-  const [selectedGovs, setSelectedGovs] = useState<string[]>(governorates.map((g) => g.key));
+  const [countryKey, setCountryKey] = useState<string>(countries[0]?.key ?? "");
+  const activeCountry = useMemo(
+    () => countries.find((c) => c.key === countryKey) ?? countries[0],
+    [countries, countryKey],
+  );
+  const [selectedDivs, setSelectedDivs] = useState<string[]>(
+    () => activeCountry?.divisions.map((d) => d.key) ?? [],
+  );
   const [searchLang, setSearchLang] = useState<"ar" | "en">(locale);
   const [rows, setRows] = useState<PlaceRow[]>([]);
   const [warnings, setWarnings] = useState<string[]>([]);
-  const [progress, setProgress] = useState<{ done: number; total: number; center: string; gov: string; calls: number } | null>(
-    null,
-  );
+  const [progress, setProgress] = useState<{
+    done: number;
+    total: number;
+    center: string;
+    gov: string;
+    country: string;
+    calls: number;
+  } | null>(null);
   const [capped, setCapped] = useState<{ calls: number; cap: number } | null>(null);
   const [running, setRunning] = useState(false);
   const [filter, setFilter] = useState("");
   const abortRef = useRef<AbortController | null>(null);
 
+  const switchCountry = (key: string) => {
+    setCountryKey(key);
+    const c = countries.find((x) => x.key === key);
+    setSelectedDivs(c ? c.divisions.map((d) => d.key) : []);
+  };
+
   const totalCenters = useMemo(
-    () => governorates.filter((g) => selectedGovs.includes(g.key)).reduce((n, g) => n + g.centerCount, 0),
-    [governorates, selectedGovs],
+    () =>
+      (activeCountry?.divisions ?? [])
+        .filter((d) => selectedDivs.includes(d.key))
+        .reduce((n, d) => n + d.centerCount, 0),
+    [activeCountry, selectedDivs],
   );
   const estCalls = useMemo(() => totalCenters * 3, [totalCenters]);
 
-  const toggleGov = (key: string) => {
-    setSelectedGovs((prev) => (prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]));
+  const toggleDiv = (key: string) => {
+    setSelectedDivs((prev) => (prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]));
   };
 
   const startScrape = useCallback(async () => {
-    if (!industry.trim() || selectedGovs.length === 0) return;
+    if (!industry.trim() || !countryKey || selectedDivs.length === 0) return;
     setRows([]);
     setWarnings([]);
     setProgress(null);
@@ -62,9 +92,19 @@ export function ScrapeWorkspace({ locale, governorates }: Props) {
       const res = await fetch("/api/scrape", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ industry, governorateKeys: selectedGovs, language: searchLang }),
+        body: JSON.stringify({
+          industry,
+          countryKey,
+          divisionKeys: selectedDivs,
+          language: searchLang,
+        }),
         signal: ctrl.signal,
       });
+      if (res.status === 401) {
+        setWarnings((w) => [...w, t("errors.unauthorized")]);
+        setRunning(false);
+        return;
+      }
       if (!res.ok || !res.body) throw new Error("Bad response");
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
@@ -82,10 +122,18 @@ export function ScrapeWorkspace({ locale, governorates }: Props) {
             const evt = JSON.parse(line.slice(6)) as SseEvent;
             if (evt.type === "row") setRows((r) => [...r, evt.row]);
             else if (evt.type === "progress")
-              setProgress({ done: evt.done, total: evt.total, center: evt.center, gov: evt.governorate, calls: evt.calls });
+              setProgress({
+                done: evt.done,
+                total: evt.total,
+                center: evt.center,
+                gov: evt.governorate,
+                country: evt.country,
+                calls: evt.calls,
+              });
             else if (evt.type === "warning") setWarnings((w) => [...w, evt.message]);
             else if (evt.type === "capped") setCapped({ calls: evt.calls, cap: evt.cap });
-            else if (evt.type === "done") setProgress((p) => (p ? { ...p, done: p.total, calls: evt.calls } : p));
+            else if (evt.type === "done")
+              setProgress((p) => (p ? { ...p, done: p.total, calls: evt.calls } : p));
           } catch {}
         }
       }
@@ -95,7 +143,7 @@ export function ScrapeWorkspace({ locale, governorates }: Props) {
       setRunning(false);
       abortRef.current = null;
     }
-  }, [industry, selectedGovs, searchLang]);
+  }, [industry, countryKey, selectedDivs, searchLang, t]);
 
   const cancel = () => {
     abortRef.current?.abort();
@@ -124,6 +172,7 @@ export function ScrapeWorkspace({ locale, governorates }: Props) {
         r.name.toLowerCase().includes(f) ||
         r.address.toLowerCase().includes(f) ||
         r.phone.toLowerCase().includes(f) ||
+        r.country.toLowerCase().includes(f) ||
         r.governorate.toLowerCase().includes(f) ||
         r.center.toLowerCase().includes(f),
     );
@@ -142,18 +191,44 @@ export function ScrapeWorkspace({ locale, governorates }: Props) {
         />
 
         <div className="mt-6">
+          <label className="block text-sm mb-2 text-ink-200">{t("form.country")}</label>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
+            {countries.map((c) => {
+              const on = c.key === countryKey;
+              return (
+                <button
+                  key={c.key}
+                  onClick={() => switchCountry(c.key)}
+                  disabled={running}
+                  className={`text-start px-3 py-2 rounded-lg border text-sm transition ${
+                    on
+                      ? "bg-accent-500/15 border-accent-500/60 text-white"
+                      : "border-ink-700 text-ink-300 hover:border-ink-500"
+                  }`}
+                >
+                  <div className="font-medium truncate">{c.label}</div>
+                  <div className="text-[10px] opacity-70">
+                    {c.divisions.length} {t("progress.divisions")} · {c.totalCenters} {t("progress.centers")}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="mt-6">
           <div className="flex items-center justify-between mb-2">
-            <label className="text-sm text-ink-200">{t("form.governorates")}</label>
+            <label className="text-sm text-ink-200">{t("form.divisions")}</label>
             <div className="flex gap-2 text-xs">
               <button
-                onClick={() => setSelectedGovs(governorates.map((g) => g.key))}
+                onClick={() => setSelectedDivs(activeCountry?.divisions.map((d) => d.key) ?? [])}
                 className="chip hover:brightness-125"
                 disabled={running}
               >
                 {t("form.selectAll")}
               </button>
               <button
-                onClick={() => setSelectedGovs([])}
+                onClick={() => setSelectedDivs([])}
                 className="chip hover:brightness-125"
                 disabled={running}
               >
@@ -162,12 +237,12 @@ export function ScrapeWorkspace({ locale, governorates }: Props) {
             </div>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
-            {governorates.map((g) => {
-              const on = selectedGovs.includes(g.key);
+            {(activeCountry?.divisions ?? []).map((d) => {
+              const on = selectedDivs.includes(d.key);
               return (
                 <button
-                  key={g.key}
-                  onClick={() => toggleGov(g.key)}
+                  key={d.key}
+                  onClick={() => toggleDiv(d.key)}
                   disabled={running}
                   className={`text-start px-3 py-2 rounded-lg border text-sm transition ${
                     on
@@ -175,9 +250,9 @@ export function ScrapeWorkspace({ locale, governorates }: Props) {
                       : "border-ink-700 text-ink-300 hover:border-ink-500"
                   }`}
                 >
-                  <div className="font-medium truncate">{g.label}</div>
+                  <div className="font-medium truncate">{d.label}</div>
                   <div className="text-[10px] opacity-70">
-                    {g.centerCount} {t("progress.centers")}
+                    {d.centerCount} {t("progress.centers")}
                   </div>
                 </button>
               );
@@ -227,7 +302,7 @@ export function ScrapeWorkspace({ locale, governorates }: Props) {
             {!running ? (
               <button
                 onClick={startScrape}
-                disabled={!industry.trim() || selectedGovs.length === 0}
+                disabled={!industry.trim() || selectedDivs.length === 0}
                 className="px-6 py-3 rounded-lg bg-accent-500 hover:bg-accent-400 text-ink-900 font-semibold disabled:opacity-40"
               >
                 {t("form.start")}
@@ -243,9 +318,7 @@ export function ScrapeWorkspace({ locale, governorates }: Props) {
           </div>
         </div>
 
-        {estCalls > 500 && (
-          <p className="mt-4 text-xs text-amber-300/80">{t("form.warn")}</p>
-        )}
+        {estCalls > 500 && <p className="mt-4 text-xs text-amber-300/80">{t("form.warn")}</p>}
       </div>
 
       {(running || progress || warnings.length > 0) && (
@@ -255,7 +328,7 @@ export function ScrapeWorkspace({ locale, governorates }: Props) {
             <div>
               <div className="flex justify-between text-sm text-ink-300 mb-2">
                 <span>
-                  {t("progress.scanning")}: <b className="text-white">{progress.center}</b> — {progress.gov}
+                  {t("progress.scanning")}: <b className="text-white">{progress.center}</b> — {progress.gov}, {progress.country}
                 </span>
                 <span>
                   {progress.done} {t("progress.of")} {progress.total} {t("progress.centers")}
@@ -336,6 +409,7 @@ export function ScrapeWorkspace({ locale, governorates }: Props) {
                   <th className="py-2 pe-3 text-start">{t("table.phone")}</th>
                   <th className="py-2 pe-3 text-start">{t("table.website")}</th>
                   <th className="py-2 pe-3 text-start">{t("table.rating")}</th>
+                  <th className="py-2 pe-3 text-start">{t("table.country")}</th>
                   <th className="py-2 pe-3 text-start">{t("table.governorate")}</th>
                   <th className="py-2 pe-3 text-start">{t("table.center")}</th>
                 </tr>
@@ -379,6 +453,7 @@ export function ScrapeWorkspace({ locale, governorates }: Props) {
                         <span className="text-ink-500">—</span>
                       )}
                     </td>
+                    <td className="py-2 pe-3 text-ink-300">{r.country}</td>
                     <td className="py-2 pe-3 text-ink-300">{r.governorate}</td>
                     <td className="py-2 pe-3 text-ink-300">{r.center}</td>
                   </tr>

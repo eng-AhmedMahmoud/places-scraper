@@ -1,20 +1,42 @@
 {
   "brand": {
     "name": "PlaceHarvest",
-    "tagline": "Egypt business directory scraper"
+    "tagline": "MENA business directory scraper",
+    "product": "PlaceHarvest by Devya"
   },
   "nav": {
-    "language": "العربية"
+    "language": "العربية",
+    "signIn": "Sign in",
+    "signUp": "Get started",
+    "signOut": "Sign out",
+    "workspace": "Open workspace"
+  },
+  "landing": {
+    "eyebrow": "Devya Solutions · SaaS",
+    "title": "Scrape every business in the MENA region",
+    "subtitle": "Pick a country, pick a region, pick your industry. We stream every Google Maps listing straight into a clean Excel.",
+    "cta": "Start scraping",
+    "featuresTitle": "Built for cold outreach at scale",
+    "feature1Title": "18 MENA countries",
+    "feature1Body": "Egypt, KSA, UAE, Kuwait, Qatar, Bahrain, Oman, Jordan, Lebanon, Iraq, Syria, Palestine, Yemen, Libya, Tunisia, Algeria, Morocco, Sudan.",
+    "feature2Title": "Streamed results",
+    "feature2Body": "See leads land in the table as we walk each region. Cancel any time, keep everything found so far.",
+    "feature3Title": "Clean Excel export",
+    "feature3Body": "One sheet per region + a combined tab. Ready for your CRM, dialer, or WhatsApp cadence.",
+    "authCta": "Sign in to your workspace",
+    "countries": "countries",
+    "totalCenters": "cities & centers indexed"
   },
   "hero": {
-    "title": "Scrape any industry across Egypt",
-    "subtitle": "Enter an industry, pick governorates, download a clean Excel of every business Google knows.",
+    "title": "Scrape any industry across MENA",
+    "subtitle": "Choose a country, pick regions, download a clean Excel of every business Google knows.",
     "cta": "Start scraping"
   },
   "form": {
     "industry": "Industry / keyword",
     "industryPh": "e.g. speech therapy centers, dental clinics, gyms",
-    "governorates": "Governorates",
+    "country": "Country",
+    "divisions": "Regions / governorates",
     "selectAll": "Select all",
     "clearAll": "Clear",
     "language": "Search language",
@@ -31,6 +53,7 @@
     "found": "results found",
     "of": "of",
     "centers": "centers",
+    "divisions": "regions",
     "waiting": "Waiting to start",
     "done": "Finished",
     "warnings": "Warnings",
@@ -47,12 +70,16 @@
     "hours": "Working hours",
     "rating": "Rating",
     "reviews": "Reviews",
-    "governorate": "Governorate",
+    "country": "Country",
+    "governorate": "Region",
     "center": "Center",
     "empty": "No results yet. Run a scrape.",
     "download": "Download Excel"
   },
+  "errors": {
+    "unauthorized": "Please sign in to start a scrape."
+  },
   "footer": {
-    "note": "Data from Google Places. Uses your configured API key server-side."
+    "note": "A Devya Solutions product · Data from Google Places · API key stays server-side."
   }
 }

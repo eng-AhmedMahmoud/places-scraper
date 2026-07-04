@@ -19,6 +19,7 @@ const HEADERS_AR: Record<keyof PlaceRow, string> = {
   lng: "خط الطول",
   rating: "التقييم",
   totalRatings: "عدد المراجعات",
+  country: "الدولة",
   governorate: "المحافظة",
   center: "المركز",
   placeId: "معرف Google",
@@ -34,8 +35,9 @@ const HEADERS_EN: Record<keyof PlaceRow, string> = {
   lng: "Longitude",
   rating: "Rating",
   totalRatings: "Reviews",
-  governorate: "Governorate",
-  center: "Center",
+  country: "Country",
+  governorate: "Governorate / Region",
+  center: "Center / City",
   placeId: "Google place ID",
 };
 
@@ -43,11 +45,12 @@ export async function POST(req: NextRequest) {
   const { rows, locale } = (await req.json()) as Body;
   const headers = locale === "ar" ? HEADERS_AR : HEADERS_EN;
 
-  const byGovernorate = new Map<string, PlaceRow[]>();
+  const byGroup = new Map<string, PlaceRow[]>();
   for (const r of rows) {
-    const arr = byGovernorate.get(r.governorate) ?? [];
+    const key = `${r.country} - ${r.governorate}`;
+    const arr = byGroup.get(key) ?? [];
     arr.push(r);
-    byGovernorate.set(r.governorate, arr);
+    byGroup.set(key, arr);
   }
 
   const wb = XLSX.utils.book_new();
@@ -62,7 +65,7 @@ export async function POST(req: NextRequest) {
   const allSheet = XLSX.utils.json_to_sheet(allData);
   XLSX.utils.book_append_sheet(wb, allSheet, locale === "ar" ? "الكل" : "All");
 
-  for (const [gov, list] of byGovernorate) {
+  for (const [gov, list] of byGroup) {
     const data = list.map((r) => {
       const o: Record<string, string | number | null> = {};
       (Object.keys(headers) as (keyof PlaceRow)[]).forEach((k) => {
