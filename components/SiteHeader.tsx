@@ -15,9 +15,8 @@ export async function SiteHeader({ locale }: Props) {
   return (
     <header className="max-w-[1240px] mx-auto px-8 py-6 flex items-center justify-between gap-4 sticky top-0 z-10 backdrop-blur-xl bg-[rgba(2,2,2,0.7)] border-b border-line">
       <Link href={`/${locale}`} className="flex items-center gap-3 group">
-        <div className="w-9 h-9 rounded-brand-sm bg-gradient-to-br from-[#F4F6F9] to-[#8E97A5] flex items-center justify-center text-[#08090B] font-display font-bold text-lg">
-          P
-        </div>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/logo.svg" alt="PlaceHarvest" width={40} height={40} className="block" />
         <div className="flex flex-col leading-tight">
           <span className="font-display font-semibold text-text tracking-tight">
             {t("brand.name")}
