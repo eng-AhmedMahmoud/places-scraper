@@ -17,7 +17,7 @@ jobs:
       - uses: actions/checkout@v4
       # package.json has no packageManager field, so pin the pnpm major here
       # (lockfileVersion 9.0 -> pnpm 9/10 compatible).
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
         with:
           version: 10
       - uses: actions/setup-node@v4
@@ -34,7 +34,7 @@ jobs:
     continue-on-error: true
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
         with:
           version: 10
       - uses: actions/setup-node@v4
