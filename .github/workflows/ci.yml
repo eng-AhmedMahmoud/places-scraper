@@ -17,10 +17,16 @@ jobs:
     uses: eng-AhmedMahmoud/devya-workflows/.github/workflows/node-quality.yml@v1
     with:
       package-manager: pnpm
-      # build-command intentionally omitted: `next build` needs Stack Auth env
-      # (NEXT_PUBLIC_HEXCLAVE_PROJECT_ID) at build time. Enable once the repo
-      # variables exist:
-      #   build-command: pnpm run build
+      build-command: pnpm run build
+      # Stack Auth needs these at build time; IDs are repo VARIABLES
+      # (NEXT_PUBLIC_* — public by definition, shipped in client JS anyway).
+      # The server key only needs to be PRESENT for page-data collection —
+      # a dummy satisfies it; no API call is made during build.
+      env-lines: |
+        NEXT_PUBLIC_HEXCLAVE_API_URL=${{ vars.NEXT_PUBLIC_HEXCLAVE_API_URL }}
+        NEXT_PUBLIC_HEXCLAVE_PROJECT_ID=${{ vars.NEXT_PUBLIC_HEXCLAVE_PROJECT_ID }}
+        HEXCLAVE_SECRET_SERVER_KEY=dummy-ci-server
+        STACK_SECRET_SERVER_KEY=dummy-ci-server
   security:
     uses: eng-AhmedMahmoud/devya-workflows/.github/workflows/node-security.yml@v1
     with:
