@@ -34,27 +34,77 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
       <SiteHeader locale={locale} />
       <main className="max-w-[1240px] mx-auto px-8 pb-24">
         <section className="pt-16 md:pt-24 pb-12">
-          <span className="eyebrow">
-            <span className="eyebrow__dot" />
-            {t("landing.eyebrow")}
-          </span>
-          <h1 className="mt-6 font-display font-semibold leading-[1.02] tracking-tight text-[clamp(40px,6.5vw,80px)] max-w-4xl">
-            {t("landing.title").split(" ").slice(0, -3).join(" ")}{" "}
-            <span className="grad">
-              {t("landing.title").split(" ").slice(-3).join(" ")}
-            </span>
-          </h1>
-          <p className="mt-6 text-text-soft leading-relaxed text-[clamp(17px,1.6vw,20px)] max-w-2xl">
-            {t("landing.subtitle")}
-          </p>
-          <div className="mt-10 flex flex-wrap items-center gap-4">
-            <Link href={primaryHref} className="btn btn--primary btn--lg">
-              {primaryLabel}
-              <span className="btn__arrow" aria-hidden="true">→</span>
-            </Link>
-            <Link href={`/${locale}/app`} className="btn btn--ghost btn--lg">
-              {t("landing.authCta")}
-            </Link>
+          <div className="hero-grid">
+            <div>
+              <span className="eyebrow">
+                <span className="eyebrow__dot" />
+                {t("landing.eyebrow")}
+              </span>
+              <h1 className="mt-6 font-display font-semibold leading-[1.02] tracking-tight text-[clamp(40px,6.5vw,80px)] max-w-4xl">
+                {t("landing.title").split(" ").slice(0, -3).join(" ")}{" "}
+                <span className="grad">
+                  {t("landing.title").split(" ").slice(-3).join(" ")}
+                </span>
+              </h1>
+              <p className="mt-6 text-text-soft leading-relaxed text-[clamp(17px,1.6vw,20px)] max-w-2xl">
+                {t("landing.subtitle")}
+              </p>
+              <div className="mt-10 flex flex-wrap items-center gap-4">
+                <Link href={primaryHref} className="btn btn--primary btn--lg">
+                  {primaryLabel}
+                  <span className="btn__arrow" aria-hidden="true">→</span>
+                </Link>
+                <Link href={`/${locale}/app`} className="btn btn--ghost btn--lg">
+                  {t("landing.authCta")}
+                </Link>
+              </div>
+            </div>
+
+            {/* Decorative, non-interactive scraper-results preview */}
+            <div className="hp" aria-hidden>
+              <span className="hp__glow" />
+              <div className="hp__win">
+                <div className="hp__bar">
+                  <span className="hp__dot" />
+                  <span className="hp__dot" />
+                  <span className="hp__dot" />
+                  <span className="hp__url">app.placeharvest.dev</span>
+                </div>
+                <div className="hp__body">
+                  <div className="hp-tb__top">
+                    <span className="hp-tb__loc font-cairo" dir="rtl">
+                      <span className="hp-tb__pin" />
+                      الرياض · مطاعم
+                    </span>
+                    <span className="hp-tb__export">Export XLSX ↓</span>
+                  </div>
+                  <div className="hp-tb">
+                    <div className="hp-tb__head">
+                      <span>Business</span>
+                      <span>Category</span>
+                      <span style={{ textAlign: "end" }}>★</span>
+                    </div>
+                    {[
+                      { n: "مطعم الطازج", c: "مطاعم", r: "4.7" },
+                      { n: "بيت المندي", c: "مطاعم", r: "4.8" },
+                      { n: "كافيه لمسة", c: "مقاهي", r: "4.5" },
+                      { n: "حلويات سعد", c: "حلويات", r: "4.6" },
+                      { n: "شاورما الحطب", c: "وجبات سريعة", r: "4.4" },
+                    ].map((row) => (
+                      <div className="hp-tb__row" key={row.n}>
+                        <span className="hp-tb__name font-cairo" dir="rtl">{row.n}</span>
+                        <span className="hp-tb__cat font-cairo" dir="rtl">{row.c}</span>
+                        <span className="hp-tb__star">★ {row.r}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="hp-tb__foot">
+                    <span><b>1,284</b> results</span>
+                    <span>2.9s → .xlsx</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-6 pt-10 border-t border-line">
