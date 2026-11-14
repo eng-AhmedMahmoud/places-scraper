@@ -1,22 +1,28 @@
 services:
   places-scraper:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      # Public by definition (shipped in client JS), but kept out of git: the
-      # values come from the VPS env file, which scripts/deploy.sh passes to
-      # compose with --env-file.
-      args:
-        NEXT_PUBLIC_HEXCLAVE_API_URL: ${NEXT_PUBLIC_HEXCLAVE_API_URL:-https://api.stack-auth.com}
-        NEXT_PUBLIC_HEXCLAVE_PROJECT_ID: ${NEXT_PUBLIC_HEXCLAVE_PROJECT_ID:?set it in /home/devya/projects/places-scraper.env}
-    image: places-scraper:latest
+    # Stock Node image and no build on the VPS: scripts/deploy.sh builds the
+    # Next.js standalone server on the Mac (Linux x86-64 native binaries) and
+    # ships it into ./app next to this file.
+    image: node:24.22.1-alpine
     container_name: places-scraper
     restart: unless-stopped
-    # Stack Auth keys, GOOGLE_MAPS_API_KEY, MAX_API_CALLS. Outside the release directory,
-    # which scripts/deploy.sh replaces: the values never travel with a release.
+    user: "1000:1000"             # node; scripts/deploy.sh chowns ./app to it
+    working_dir: /app
+    command: ["node", "server.js"]
+    environment:
+      NODE_ENV: production
+      NEXT_TELEMETRY_DISABLED: "1"
+      PORT: "3000"
+      HOSTNAME: 0.0.0.0
+    # Stack Auth keys, GOOGLE_MAPS_API_KEY, MAX_API_CALLS. Outside the release
+    # directory, which scripts/deploy.sh replaces: the values never travel with
+    # a release. The NEXT_PUBLIC_* ones are inlined at build time, so changing
+    # them needs a redeploy.
     env_file:
       - path: /home/devya/projects/places-scraper.env
         required: false
+    volumes:
+      - ./app:/app
     ports:
       # Loopback-only: nginx reverse-proxies to localhost:3195. Without the
       # 127.0.0.1 prefix Docker publishes on 0.0.0.0, which ufw does not filter.
