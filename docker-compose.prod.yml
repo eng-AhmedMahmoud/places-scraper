@@ -2,11 +2,11 @@ services:
   places-scraper:
     # Stock Node image and no build on the VPS: scripts/deploy.sh builds the
     # Next.js standalone server on the Mac (Linux x86-64 native binaries) and
-    # ships it into ./app next to this file.
+    # ships it to releases/<sha>; ./current points at the live one.
     image: node:24.22.1-alpine
     container_name: places-scraper
     restart: unless-stopped
-    user: "1000:1000"             # node; scripts/deploy.sh chowns ./app to it
+    user: "1000:1000"             # node
     working_dir: /app
     command: ["node", "server.js"]
     environment:
@@ -22,7 +22,10 @@ services:
       - path: /home/devya/projects/places-scraper.env
         required: false
     volumes:
-      - ./app:/app
+      - ./current:/app:ro
+    tmpfs:
+      # The only path Next.js writes at runtime (image optimizer cache).
+      - /app/.next/cache:uid=1000,gid=1000,size=64m
     ports:
       # Loopback-only: nginx reverse-proxies to localhost:3195. Without the
       # 127.0.0.1 prefix Docker publishes on 0.0.0.0, which ufw does not filter.
