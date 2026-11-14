@@ -1,0 +1,35 @@
+services:
+  places-scraper:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      # Public by definition (shipped in client JS), but kept out of git: the
+      # values come from the VPS env file, which scripts/deploy.sh passes to
+      # compose with --env-file.
+      args:
+        NEXT_PUBLIC_HEXCLAVE_API_URL: ${NEXT_PUBLIC_HEXCLAVE_API_URL:-https://api.stack-auth.com}
+        NEXT_PUBLIC_HEXCLAVE_PROJECT_ID: ${NEXT_PUBLIC_HEXCLAVE_PROJECT_ID:?set it in /home/devya/projects/places-scraper.env}
+    image: places-scraper:latest
+    container_name: places-scraper
+    restart: unless-stopped
+    # Stack Auth keys, GOOGLE_MAPS_API_KEY, MAX_API_CALLS. Outside the release directory,
+    # which scripts/deploy.sh replaces: the values never travel with a release.
+    env_file:
+      - path: /home/devya/projects/places-scraper.env
+        required: false
+    ports:
+      # Loopback-only: nginx reverse-proxies to localhost:3195. Without the
+      # 127.0.0.1 prefix Docker publishes on 0.0.0.0, which ufw does not filter.
+      - "127.0.0.1:3195:3000"
+    mem_limit: 384m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/en').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 25s
