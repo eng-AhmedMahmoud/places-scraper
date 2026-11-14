@@ -2,6 +2,7 @@
   "name": "placeharvest",
   "version": "0.2.0",
   "private": true,
+  "packageManager": "pnpm@11.28.5",
   "scripts": {
     "dev": "portless placeharvest -- next dev",
     "dev:raw": "next dev",

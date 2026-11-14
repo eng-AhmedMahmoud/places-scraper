@@ -1,0 +1,6 @@
+# pnpm 11 fails an install whose dependencies' build scripts are neither
+# allowed nor denied. Same list as the sibling apps (copyforge).
+allowBuilds:
+  esbuild: true
+  sharp: true
+  unrs-resolver: true
